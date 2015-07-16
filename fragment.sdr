@@ -1,0 +1,7 @@
+#version 400 core
+out vec4 out_Color;
+in vec4 exColor;
+
+void main() {
+    out_Color = exColor;
+}
