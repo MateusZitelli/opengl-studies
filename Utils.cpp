@@ -1,4 +1,10 @@
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <cstring>
 #include "Utils.h"
+
+using namespace std;
 
 const Matrix IDENTITY_MATRIX = {{
   1, 0, 0, 0,
@@ -210,4 +216,3 @@ void IgnoreOnGLError(const char* error_message)
     fprintf(stderr, "%s: %s\n", error_message, gluErrorString(ErrorValue));
   }
 }
- 
