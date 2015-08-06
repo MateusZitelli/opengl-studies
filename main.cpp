@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include "Utils.h"
+#include "Object.h"
 
 using namespace std;
 
@@ -126,6 +127,7 @@ void LoadProgram(){
 
     glLinkProgram(ShaderIds[0]);
     ExitOnGLError("ERROR: Could not link the shader program");
+    glUseProgram(ShaderIds[0]);
 }
 
 void InitializeGL(int width, int height){
@@ -135,7 +137,6 @@ void InitializeGL(int width, int height){
         exit(EXIT_FAILURE); 
     }
     IgnoreOnGLError("Error: Glew error in init");
-
 
     glDepthMask(GL_TRUE); 
     glEnable(GL_DEPTH_TEST);
@@ -147,14 +148,6 @@ void InitializeGL(int width, int height){
     glFrontFace(GL_CCW);
     ExitOnGLError("Error: Could not set OpenGL culling options");
 
-    ModelMatrix = IDENTITY_MATRIX;
-    ProjectionMatrix = IDENTITY_MATRIX;
-    
-    const Vector position = {{0, 0, 10}},
-        lookat = {{0, 0, 0}},
-        orientation = {{0, 1, 0}};
-    ViewMatrix = CreateCameraMatrix(position, lookat, orientation);
-
     ProjectionMatrix = CreateProjectionMatrix(
         60.0f,
         (float) width / height,
@@ -162,8 +155,6 @@ void InitializeGL(int width, int height){
         100.0f
     );
 
-
-    CreateCube();
     glGetError();
 }
 
@@ -223,6 +214,14 @@ void CreateCube(void) {
     glBindVertexArray(0);
 }
 
+void LoadScene(void){
+    LoadProgram();    
+
+    ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
+    ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
+    ExitOnGLError("ERROR: Could not get the shader uniform locations");
+}
+
 void DestroyCube(void){
     glDetachShader(ShaderIds[0], ShaderIds[1]);
     glDetachShader(ShaderIds[0], ShaderIds[2]);
@@ -234,6 +233,15 @@ void DestroyCube(void){
     glDeleteBuffers(2, &BufferIds[1]);
     glDeleteVertexArrays(1, &BufferIds[0]);
     ExitOnGLError("Error: Could not destroy the buffer objects");
+}
+
+void DestroyScene(void){
+    glDetachShader(ShaderIds[0], ShaderIds[1]);
+    glDetachShader(ShaderIds[0], ShaderIds[2]);
+    glDeleteShader(ShaderIds[1]);
+    glDeleteShader(ShaderIds[2]);
+    glDeleteProgram(ShaderIds[0]);
+    ExitOnGLError("Error: Could not destroy shaders");
 }
 
 void DrawCube(void){
@@ -277,21 +285,48 @@ void DrawCube(void){
     glUseProgram(0);
 }
 
-void SetCamera(void){
+void DrawScene(){
+    float CubeAngle;
+    ExitOnGLError("ERROR: Could not use the shader program");
+    clock_t Now = clock();
+    if(LastTime == 0)
+        LastTime = Now;
 
+    CubeRotation += 90.0f * ((float) (Now - LastTime) / CLOCKS_PER_SEC);
+
+    CubeAngle = DegreesToRadians(CubeRotation);
+
+    LastTime = Now;
+    // RotateAboutX(&ModelMatrix, CubeAngle);
+    // RotateAboutY(&ModelMatrix, CubeAngle);
+    // TranslateMatrix(&ModelMatrix, sin(CubeAngle) * 2, cos(CubeAngle) * 2, sin(CubeAngle * 2) * 2);
+    const Vector position = {{1 * cos(CubeAngle), 1, 1 * sin(CubeAngle)}},
+        lookat = {{0, 0, 0}},
+        orientation = {{0, 1, 0}};
+
+    ViewMatrix = CreateCameraMatrix(position, lookat, orientation);
+
+    glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
+    glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
+    ExitOnGLError("ERROR: Could not set the shader uniforms");
 }
 
 int main(void){
     int width = 800, height = 600;
     GLFWwindow* window = GenWindow(width, height);
     InitializeGL(width, height);
+    Object obj;
+    LoadScene();
+    obj.load("beetle.off", ShaderIds[0]);
     while(!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        DrawCube();
+        DrawScene();
+        obj.draw();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    DestroyCube();
+    obj.remove();
+    DestroyScene();
     glfwTerminate();
 }
 

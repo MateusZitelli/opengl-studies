@@ -1,6 +1,7 @@
 #version 400 core
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inColor;
+layout(location = 2) in vec4 inNormal;
 out vec4 exColor;
 
 uniform mat4 ModelMatrix;
@@ -9,6 +10,10 @@ uniform mat4 ProjectionMatrix;
 
 void main(){
     int i;
-    gl_Position = (ProjectionMatrix * ViewMatrix * ModelMatrix) * inPosition;
-    exColor = inColor;
+    mat4 modelview = ViewMatrix * ModelMatrix;
+    gl_Position = (ProjectionMatrix * modelview) * inPosition;
+    vec4 tnorm = normalize(modelview * vec4(inNormal));
+    vec4 lightVec = normalize(ViewMatrix * vec4(5, 0, 0, 1) - gl_Position);
+    float idiffuse = max(dot(lightVec, tnorm), 0.0);
+    exColor = inColor * (idiffuse * 0.7 + 0.3);
 }
