@@ -297,12 +297,10 @@ void DrawScene(){
     CubeAngle = DegreesToRadians(CubeRotation);
 
     LastTime = Now;
-    ModelMatrix = IDENTITY_MATRIX;
-
     // RotateAboutX(&ModelMatrix, CubeAngle);
     // RotateAboutY(&ModelMatrix, CubeAngle);
     // TranslateMatrix(&ModelMatrix, sin(CubeAngle) * 2, cos(CubeAngle) * 2, sin(CubeAngle * 2) * 2);
-    const Vector position = {{2 * cos(CubeAngle), 2 * sin(CubeAngle), -1}},
+    const Vector position = {{1 * cos(CubeAngle), 1, 1 * sin(CubeAngle)}},
         lookat = {{0, 0, 0}},
         orientation = {{0, 1, 0}};
 

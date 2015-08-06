@@ -2,6 +2,7 @@
 #include <fstream>
 #include <Object.h>
 #include <Utils.h>
+#define VERBOSE false
 
 using namespace std;
 
@@ -33,6 +34,7 @@ void Object::prepare(){
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, BufferIds[2]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexT) * nf * 3, ind, GL_STATIC_DRAW);
@@ -49,7 +51,7 @@ void Object::draw(){
     glBindVertexArray(BufferIds[0]);
     ExitOnGLError("ERROR: Could not bind the VAO for drawing purposes");
 
-    glDrawElements(GL_TRIANGLES, nf * 3, GL_UNSIGNED_BYTE, (GLvoid*)0);
+    glDrawElements(GL_TRIANGLES, nf * 3, GL_UNSIGNED_SHORT, (GLvoid*)0);
     ExitOnGLError("ERROR: Could not draw the cube");
 
     glBindVertexArray(0);
@@ -62,15 +64,15 @@ void Object::remove(){
 }
 
 void Object::print(){
-    int j;
+    int j, l = 0;
     indexT *vi;
     Vertex *v;
-    vi = ind;
     for(int i = 0; i < nf; i++){
         cout << "Facet " << i << "\n";
         for(int k = 0; k < 3; k++){
             cout << "Vertex" << k << "\n";
-            v = vert + *vi++;
+            cout << "Index: " << ind[l] << "\n";
+            v = vert + ind[l];
             cout << "Position:\n";
             for(j = 0; j < 4; j++){
                 cout << v->Position[j] << ", ";
@@ -86,6 +88,7 @@ void Object::print(){
                 cout << v->Normal[j] << ", ";
             }
             cout << "\n\n";
+            l++;
         }
         cout << "\n";
     }
@@ -101,7 +104,7 @@ void Object::load(const char *filename, GLuint ShaderId) {
 
     vert = new Vertex[nv];
     indexT *vi;
-    vi = ind = new indexT[3 * nf];
+    vi = ind = (indexT*) malloc(sizeof(indexT) * 3 * nf);
     for(int i = 0; i < nv; i++){
         f >> vert[i].Position[0] >> vert[i].Position[1] >> vert[i].Position[2];
         vert[i].Position[3] = 1;
@@ -109,11 +112,14 @@ void Object::load(const char *filename, GLuint ShaderId) {
 
     for(int i = 0; i < nf; i++){
         f >> j >> *vi++ >> *vi++ >> *vi++;
+        int tmp = *(vi - 3);
+        *(vi - 3) = *(vi - 1);
+        *(vi - 1) = tmp;
     }
 
     for(int i = 0; i < nv; i++){
         for(int j = 0; j < 4; j++){
-            vert[i].Color[j] = 1;
+            vert[i].Color[j] = j / 3.0;
             vert[i].Normal[j] = 0;
         }
     }
@@ -133,9 +139,9 @@ void Object::load(const char *filename, GLuint ShaderId) {
             ab.values[j] = b->Position[j] - a->Position[j];
             ac.values[j] = c->Position[j] - a->Position[j];
         }
-
        
         // Calculate the cross product
+        norm.values[3] = 0;
         for(j = 0; j < 3; j++){
             int ia, ib;
             norm.values[j] = 0;
@@ -155,7 +161,7 @@ void Object::load(const char *filename, GLuint ShaderId) {
             c->Normal[j] += norm.values[j];
         }
 
-        #ifdef VERBOSE
+        #if VERBOSE
         cout << "Facet "<< i << "\n";
         cout << "AB:\n";
         for(j = 0; j < 4; j++){
@@ -205,10 +211,10 @@ void Object::load(const char *filename, GLuint ShaderId) {
         normalSize = sqrt(normalSizeSquared);
 
         for(int j = 0; j < 4; j++){
-            v->Normal[j] /= normalSize;
+            v->Normal[j] /= -normalSize;
         }
 
-        #ifdef VERBOSE
+        #if VERBOSE
         cout << "Vertex position\n";
         for(int j = 0; j < 4; j++){
             cout << v->Position[j] << ", ";
