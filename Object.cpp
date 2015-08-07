@@ -42,7 +42,6 @@ void Object::prepare(){
 }
 
 void Object::draw(){
-    Matrix ModelMatrix = IDENTITY_MATRIX;
     ExitOnGLError("ERROR: Could not use the shader program");
 
     glUniformMatrix4fv(ModelMatrixUniformLocation, 1, GL_FALSE, ModelMatrix.m);
@@ -92,6 +91,26 @@ void Object::print(){
         }
         cout << "\n";
     }
+}
+
+void Object::scale(float x, float y, float z){
+    ScaleMatrix(&this->ModelMatrix, x, y, z);
+}
+
+void Object::translate(float x, float y, float z){
+    TranslateMatrix(&this->ModelMatrix, x, y, z);
+}
+
+void Object::rotateAboutX(float angle){
+    RotateAboutX(&this->ModelMatrix, angle);
+}
+
+void Object::rotateAboutY(float angle){
+    RotateAboutY(&this->ModelMatrix, angle);
+}
+
+void Object::rotateAboutZ(float angle){
+    RotateAboutZ(&this->ModelMatrix, angle);
 }
 
 void Object::load(const char *filename, GLuint ShaderId) {
@@ -208,10 +227,10 @@ void Object::load(const char *filename, GLuint ShaderId) {
             normalSizeSquared += v->Normal[j] * v->Normal[j];
         }
 
-        normalSize = sqrt(normalSizeSquared);
+        normalSize = -sqrt(normalSizeSquared);
 
         for(int j = 0; j < 4; j++){
-            v->Normal[j] /= -normalSize;
+            v->Normal[j] /= normalSize;
         }
 
         #if VERBOSE
@@ -230,5 +249,6 @@ void Object::load(const char *filename, GLuint ShaderId) {
     }
 
     this->ShaderId = ShaderId;
+    this->ModelMatrix = IDENTITY_MATRIX;
     prepare();
 }

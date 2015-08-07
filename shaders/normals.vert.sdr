@@ -1,0 +1,23 @@
+#version 330
+layout(location = 0) in vec4 inPosition;
+layout(location = 1) in vec4 inColor;
+layout(location = 2) in vec4 inNormal;
+
+out Data{
+    vec4 position;
+    vec4 normal;
+    vec4 color;
+    mat4 model;
+    mat4 vp;
+} vdata;
+
+uniform mat4 ModelMatrix;
+uniform mat4 ViewMatrix;
+uniform mat4 ProjectionMatrix;
+
+void main(){
+    vdata.vp = ProjectionMatrix * ViewMatrix;
+    vdata.model = ModelMatrix;
+    vdata.position = inPosition;
+    vdata.normal = inNormal;
+}

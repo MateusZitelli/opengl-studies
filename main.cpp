@@ -6,6 +6,14 @@
 #include "Utils.h"
 #include "Object.h"
 
+#define FRAGMENT_SHADER "shaders/phong.frag.sdr"
+#define VERTEX_SHADER "shaders/phong.vert.sdr"
+//#define FRAGMENT_SHADER "shaders/normals.frag.sdr"
+//#define VERTEX_SHADER "shaders/normals.vert.sdr"
+//#define GEOMETRY_SHADER "shaders/normals.geo.sdr"
+
+#define CULLING false
+
 using namespace std;
 
 float CubeRotation = 0;
@@ -19,7 +27,11 @@ GLuint ProjectionMatrixUniformLocation,
        ViewMatrixUniformLocation,
        ModelMatrixUniformLocation,
        BufferIds[3] = { 0 },
+#ifdef GEOMETRY_SHADER
+       ShaderIds[4] = { 0 };
+#else
        ShaderIds[3] = { 0 };
+#endif
 
 Matrix ProjectionMatrix,
        ViewMatrix,
@@ -47,8 +59,8 @@ static void window_size_callback(GLFWwindow* window, int width, int height){
     ProjectionMatrix = CreateProjectionMatrix(
         60.0f,
         (float) width / height,
-        1.0f,
-        100.0f
+        0.5f,
+        1000.0f
     );
 
     glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
@@ -105,7 +117,7 @@ GLFWwindow* GenWindow(int width, int height){
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "Hello world", NULL,NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, "GL tests", NULL,NULL);
 
     if(!window){
         glfwTerminate();
@@ -120,9 +132,13 @@ GLFWwindow* GenWindow(int width, int height){
 }
 
 void LoadProgram(){
-    ShaderIds[1] = load_shader("shaders/vertex.sdr", GL_VERTEX_SHADER);
-    ShaderIds[2] = load_shader("shaders/fragment.sdr", GL_FRAGMENT_SHADER);
+    ShaderIds[1] = load_shader(VERTEX_SHADER, GL_VERTEX_SHADER);
+    ShaderIds[2] = load_shader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
     ShaderIds[0] = load_program(ShaderIds[1], ShaderIds[2]);
+    #ifdef GEOMETRY_SHADER
+    ShaderIds[3] = load_shader(GEOMETRY_SHADER, GL_GEOMETRY_SHADER);
+    glAttachShader(ShaderIds[0], ShaderIds[3]);
+    #endif
 
     glLinkProgram(ShaderIds[0]);
     ExitOnGLError("ERROR: Could not link the shader program");
@@ -141,29 +157,30 @@ void InitializeGL(int width, int height){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     ExitOnGLError("Error: Could not set OpenGL depth testing options");
-    
+   
+#if CULLING
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     ExitOnGLError("Error: Could not set OpenGL culling options");
+#endif
 
     ProjectionMatrix = CreateProjectionMatrix(
         60.0f,
         (float) width / height,
-        1.f,
-        100.0f
+        0.5f,
+        1000.0f
     );
 }
 
-void LoadScene(void){
+void LoadWorldUniformsLocations(void){
     LoadProgram();    
-
     ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
     ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
     ExitOnGLError("ERROR: Could not get the shader uniform locations");
 }
 
-void DestroyScene(void){
+void DestroyWorld(void){
     glDetachShader(ShaderIds[0], ShaderIds[1]);
     glDetachShader(ShaderIds[0], ShaderIds[2]);
     glDeleteShader(ShaderIds[1]);
@@ -172,7 +189,7 @@ void DestroyScene(void){
     ExitOnGLError("Error: Could not destroy shaders");
 }
 
-void DrawScene(){
+void SubmitWorldUniforms(){
     float CubeAngle;
     ExitOnGLError("ERROR: Could not use the shader program");
     clock_t Now = clock();
@@ -187,7 +204,7 @@ void DrawScene(){
     // RotateAboutX(&ModelMatrix, CubeAngle);
     // RotateAboutY(&ModelMatrix, CubeAngle);
     // TranslateMatrix(&ModelMatrix, sin(CubeAngle) * 2, cos(CubeAngle) * 2, sin(CubeAngle * 2) * 2);
-    const Vector position = {{1 * cos(CubeAngle), 1, 1 * sin(CubeAngle)}},
+    const Vector position = {{4 * sin(CubeAngle), 3, 4 * cos(CubeAngle)}},
         lookat = {{0, 0, 0}},
         orientation = {{0, 1, 0}};
 
@@ -199,21 +216,22 @@ void DrawScene(){
 }
 
 int main(void){
+    Object obj;
     int width = 800, height = 600;
     GLFWwindow* window = GenWindow(width, height);
     InitializeGL(width, height);
-    Object obj;
-    LoadScene();
-    obj.load("beetle.off", ShaderIds[0]);
+    LoadWorldUniformsLocations();
+    obj.load("models/beetle.off", ShaderIds[0]);
+    obj.scale(3, 3, 3);
     while(!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        DrawScene();
+        SubmitWorldUniforms();
         obj.draw();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     obj.remove();
-    DestroyScene();
+    DestroyWorld();
     glfwTerminate();
 }
 
