@@ -26,6 +26,7 @@ void DrawCube(void);
 GLuint ProjectionMatrixUniformLocation,
        ViewMatrixUniformLocation,
        ModelMatrixUniformLocation,
+       LightPositionsUniformLocation,
        BufferIds[3] = { 0 },
 #ifdef GEOMETRY_SHADER
        ShaderIds[4] = { 0 };
@@ -177,6 +178,7 @@ void LoadWorldUniformsLocations(void){
     LoadProgram();    
     ViewMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ViewMatrix");
     ProjectionMatrixUniformLocation = glGetUniformLocation(ShaderIds[0], "ProjectionMatrix");
+    LightPositionsUniformLocation = glGetUniformLocation(ShaderIds[0], "LightPosition");
     ExitOnGLError("ERROR: Could not get the shader uniform locations");
 }
 
@@ -201,17 +203,17 @@ void SubmitWorldUniforms(){
     CubeAngle = DegreesToRadians(CubeRotation);
 
     LastTime = Now;
-    // RotateAboutX(&ModelMatrix, CubeAngle);
-    // RotateAboutY(&ModelMatrix, CubeAngle);
-    // TranslateMatrix(&ModelMatrix, sin(CubeAngle) * 2, cos(CubeAngle) * 2, sin(CubeAngle * 2) * 2);
-    const Vector position = {{4 * sin(CubeAngle), 3, 4 * cos(CubeAngle)}},
+    const Vector position = {{4, 3, 4}},
         lookat = {{0, 0, 0}},
         orientation = {{0, 1, 0}};
+
+    const GLfloat LightPosition[4] = {5 * sin(CubeAngle), 0, 5 * cos(CubeAngle), 1};
 
     ViewMatrix = CreateCameraMatrix(position, lookat, orientation);
 
     glUniformMatrix4fv(ViewMatrixUniformLocation, 1, GL_FALSE, ViewMatrix.m);
     glUniformMatrix4fv(ProjectionMatrixUniformLocation, 1, GL_FALSE, ProjectionMatrix.m);
+    glUniform4f(LightPositionsUniformLocation, LightPosition[0], LightPosition[1], LightPosition[2], LightPosition[3]);
     ExitOnGLError("ERROR: Could not set the shader uniforms");
 }
 

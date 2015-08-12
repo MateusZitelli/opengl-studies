@@ -10,13 +10,14 @@ smooth out vec4 exPositionVec;
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
+uniform vec4 LightPosition;
 
 void main(){
     mat4 modelview = ViewMatrix * ModelMatrix;
     gl_Position = (ProjectionMatrix * modelview) * inPosition;
 
     vec4 relativeNorm = normalize(modelview * inNormal);
-    vec4 lightPos = ViewMatrix * vec4(5, -5, 0, 1);
+    vec4 lightPos = ViewMatrix * LightPosition;
     vec4 lightVec = normalize(lightPos - modelview * inPosition);
     vec4 positionVec = normalize(modelview * inPosition - vec4(0,0,0,1));
 
