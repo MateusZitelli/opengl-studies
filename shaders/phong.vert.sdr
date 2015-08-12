@@ -5,7 +5,7 @@ layout(location = 2) in vec4 inNormal;
 out vec4 exColor;
 smooth out vec4 exNormal;
 smooth out vec4 exLight;
-smooth out vec4 exPosition;
+smooth out vec4 exPositionVec;
 
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
@@ -14,11 +14,14 @@ uniform mat4 ProjectionMatrix;
 void main(){
     mat4 modelview = ViewMatrix * ModelMatrix;
     gl_Position = (ProjectionMatrix * modelview) * inPosition;
-    vec4 tnorm = normalize(modelview * inNormal);
-    vec4 lightPos = ViewMatrix * vec4(0, 0, -5, 1);
+
+    vec4 relativeNorm = normalize(modelview * inNormal);
+    vec4 lightPos = ViewMatrix * vec4(5, -5, 0, 1);
     vec4 lightVec = normalize(lightPos - modelview * inPosition);
-    exPosition = normalize(modelview * inPosition - vec4(0,0,0,1));
-    exNormal = tnorm;
+    vec4 positionVec = normalize(modelview * inPosition - vec4(0,0,0,1));
+
+    exPositionVec = positionVec;
+    exNormal = relativeNorm;
     exLight = lightVec;
     exColor = inColor;
 }

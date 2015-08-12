@@ -3,11 +3,11 @@ out vec4 out_Color;
 in vec4 exColor;
 smooth in vec4 exNormal;
 smooth in vec4 exLight;
-smooth in vec4 exPosition;
+smooth in vec4 exPositionVec;
 
 void main() {
     vec4 reflectedVec = normalize(2 * dot(exLight, exNormal) * exNormal - exLight);
-    float ispecular = max(dot(reflectedVec, exPosition), 0.0);
+    float ispecular = max(dot(reflectedVec, exPositionVec), 0.0);
     float idiffuse = max(dot(exLight, exNormal), 0.0);
     out_Color = exColor * (0.7 * idiffuse + 0.3) + pow(ispecular, 100);
 }
