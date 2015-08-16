@@ -7,18 +7,6 @@ using namespace std;
 float rotation = 0;
 clock_t LastTime = 0;
 
-void CreateCube(void);
-void DestroyCube(void);
-void DrawCube(void);
-
-GLuint ProjectionMatrixUniformLocation,
-       ModelMatrixUniformLocation,
-       LightPositionsUniformLocation,
-       BufferIds[3] = { 0 };
-
-Matrix ViewMatrix,
-       ModelMatrix;
-
 int lastTime = 0;
 static Object* obj;
 static Camera* camera;
