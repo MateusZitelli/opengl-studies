@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include <Object.h>
-#include <Utils.h>
+#include "Object.h"
+#include "Utils.h"
 #define VERBOSE false
 
 using namespace std;
@@ -11,7 +11,7 @@ void Object::prepare(){
     colorOffset = (GLvoid*)sizeof(vert[0].Position);
     normalOffset = (GLvoid*)(sizeof(vert[0].Position) + sizeof(vert[0].Color));
 
-    ModelMatrixUniformLocation = glGetUniformLocation(ShaderId, "ModelMatrix");
+    ModelMatrixUniformLocation = glGetUniformLocation(programId, "ModelMatrix");
     ExitOnGLError("ERROR: Could not get the shader uniform locations");
 
     glGenVertexArrays(1, &BufferIds[0]);
@@ -113,7 +113,7 @@ void Object::rotateAboutZ(float angle){
     RotateAboutZ(&this->ModelMatrix, angle);
 }
 
-void Object::load(const char *filename, GLuint ShaderId) {
+void Object::load(const char *filename) {
     ifstream f(filename);
     string s;
     f >> s; // Remove the OFF in the begin
@@ -248,7 +248,6 @@ void Object::load(const char *filename, GLuint ShaderId) {
 
     }
 
-    this->ShaderId = ShaderId;
     this->ModelMatrix = IDENTITY_MATRIX;
     prepare();
 }

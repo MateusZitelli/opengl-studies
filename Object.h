@@ -1,4 +1,6 @@
-#include <Utils.h>
+#ifndef OBJECT_H
+#define OBJECT_H
+#include "Utils.h"
 
 typedef unsigned short indexT;
 
@@ -6,7 +8,7 @@ class Object{
     public:
         Object() {}
         virtual ~Object() {}
-        void load(const char *filename, GLuint ShaderId);
+        void load(const char *filename);
         void draw();
         void print();
         void remove();
@@ -15,6 +17,7 @@ class Object{
         void rotateAboutX(float angle);
         void rotateAboutY(float angle);
         void rotateAboutZ(float angle);
+        GLuint programId;
     protected:
     private:
         int nv, nf, ne;
@@ -22,7 +25,7 @@ class Object{
         indexT *ind;
         Matrix ModelMatrix;
         GLuint BufferIds[3];
-        GLuint ShaderId;
         GLuint ModelMatrixUniformLocation;
         void prepare();
 };
+#endif

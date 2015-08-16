@@ -2,12 +2,17 @@
 #define UTILS_H
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include <math.h>
 #include <time.h>
 #include <GL/glew.h>
 #define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
+
+using namespace std;
 
 static const double PI = 3.14159265358979323846;
 
@@ -59,4 +64,6 @@ Matrix CreateProjectionMatrix(
 
 void ExitOnGLError(const char* error_message);
 void IgnoreOnGLError(const char* error_message);
+
+string readFile(const char* filename);
 #endif

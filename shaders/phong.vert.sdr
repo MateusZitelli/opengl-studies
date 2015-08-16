@@ -18,7 +18,7 @@ void main(){
 
     vec4 relativeNorm = normalize(modelview * inNormal);
     vec4 lightPos = ViewMatrix * LightPosition;
-    vec4 lightVec = normalize(lightPos - modelview * inPosition);
+    vec4 lightVec = normalize(modelview * inPosition - lightPos);
     vec4 positionVec = normalize(modelview * inPosition - vec4(0,0,0,1));
 
     exPositionVec = positionVec;

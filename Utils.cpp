@@ -216,3 +216,10 @@ void IgnoreOnGLError(const char* error_message)
     fprintf(stderr, "%s: %s\n", error_message, gluErrorString(ErrorValue));
   }
 }
+
+string readFile(const char* filename){
+    ifstream file (filename);
+    stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
